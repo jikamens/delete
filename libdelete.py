@@ -187,7 +187,14 @@ def find_deleted_files(file_or_pattern, follow_links=False,
     # The old code called readdir() and lstat'd everything before following.
     # The old code also re-implemented glob() with BREs, and we're not doing
     # that.
-    file_list = glob.glob(file_or_pattern) + glob.glob('.#' + file_or_pattern)
+    file_list = glob.glob(file_or_pattern)
+    if os.sep not in file_or_pattern:
+        file_list += glob.glob('.#' + file_or_pattern)
+    else:
+        file_list += glob.glob(os.path.join(
+            os.path.dirname(file_or_pattern), '.#' +
+            os.path.basename(file_or_pattern)))
+
     if len(file_list) == 0:
         raise DeleteError("{0}: {1}".format(
             file_or_pattern,
