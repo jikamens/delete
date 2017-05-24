@@ -8,6 +8,7 @@ import stat
 import sys
 
 import libdelete
+from libdelete import perror
 
 logger = logging.getLogger('undelete')
 whoami = os.path.basename(sys.argv[0])
@@ -39,17 +40,6 @@ def ask(question, *args, **kwargs):
                                     question % args)).strip().lower() in yes
     except KeyboardInterrupt:
         sys.exit(0)
-
-def perror(message, **kwargs):
-    """
-    Format an error message, log it in the debug log
-    and maybe also print it to stderr.
-    """
-    should_print = kwargs.pop('_maybe', False)
-    msg = "{0}: {1}".format(whoami, message.format(**kwargs))
-    logger.debug("Error: %s", msg)
-    if should_print:
-        print >>sys.stderr, msg
 
 def actually_undelete(filename, options):
     undeleted_name = libdelete.undeleted_name(filename)

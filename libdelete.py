@@ -16,9 +16,21 @@ KILO = 1024
 
 logger = logging.getLogger('libdelete')
 _have_AFS = None
+whoami = os.path.basename(sys.argv[0])
 
 class DeleteError(Exception):
     pass
+
+def perror(message, **kwargs):
+    """
+    Format an error message, log it in the debug log
+    and maybe also print it to stderr.
+    """
+    should_print = kwargs.pop('_maybe', False)
+    msg = "{0}: {1}".format(whoami, message.format(**kwargs))
+    logger.debug("Error: %s", msg)
+    if should_print:
+        print >>sys.stderr, msg
 
 def chunks(seq, size):
     """
