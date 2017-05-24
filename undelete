@@ -13,22 +13,6 @@ logger = logging.getLogger('undelete')
 whoami = os.path.basename(sys.argv[0])
 
 
-def debug_callback(option, opt_str, value, parser):
-    """
-    An OptionParser callback that enables debugging.
-    """
-    all_loggers = [logger.name, 'libdelete']
-    loggers = [x.strip() for x in value.split(',')]
-    if value.lower() == 'all':
-        loggers = all_loggers
-    else:
-        if not set(loggers) <= set(all_loggers):
-            parser.error('Valid debug targets: {0}'.format(
-                    ", ".join(all_loggers)))
-    for l in loggers:
-        logging.getLogger(l).setLevel(logging.DEBUG)
-
-
 def ask(question, *args, **kwargs):
     """
     Ask a question, possibly prepended with the name of the program
@@ -140,7 +124,7 @@ def main():
     parser.add_option(
         "--debug", action="callback", type='string',
         help="Enable debugging (logger target or 'all')",
-        callback=debug_callback, metavar='target')
+        callback=libdelete.make_debug_callback(logger), metavar='target')
     (options, args) = parser.parse_args()
     if options.recursive and options.dirsonly:
         parser.error("-r and -R are mutually exclusive")

@@ -23,6 +23,25 @@ class DeleteError(Exception):
     pass
 
 
+def make_debug_callback(logger):
+    def debug_callback(option, opt_str, value, parser):
+        """
+        An OptionParser callback that enables debugging.
+        """
+        all_loggers = [logger.name, 'libdelete']
+        loggers = [x.strip() for x in value.split(',')]
+        if value.lower() == 'all':
+            loggers = all_loggers
+        else:
+            if not set(loggers) <= set(all_loggers):
+                parser.error('Valid debug targets: {0}'.format(
+                        ", ".join(all_loggers)))
+        for l in loggers:
+            logging.getLogger(l).setLevel(logging.DEBUG)
+
+    return debug_callback
+
+
 def perror(message, **kwargs):
     """
     Format an error message, log it in the debug log
