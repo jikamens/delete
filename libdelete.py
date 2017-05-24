@@ -174,6 +174,26 @@ def to_kb(size):
     return int(round(float(size) / KILO))
 
 
+class UniqueList(list):
+    def __add__(self, other):
+        new = UniqueList(self)
+        for i in other:
+            new.append(i)
+        return new
+
+    def __radd__(self, other):
+        return self.__add__(other)
+
+    def __iadd__(self, other):
+        for i in other:
+            self.append(i)
+        return self
+
+    def append(self, item):
+        if item not in self:
+            super(UniqueList, self).append(item)
+
+
 def find_deleted_files(file_or_pattern, follow_links=False,
                        follow_mounts=False, recurse_undeleted_subdirs=None,
                        recurse_deleted_subdirs=None, n_days=0):
@@ -182,7 +202,13 @@ def find_deleted_files(file_or_pattern, follow_links=False,
                  "recurse_del=%s, ndays=%s)",
                  file_or_pattern, follow_links, follow_mounts,
                  recurse_undeleted_subdirs, recurse_deleted_subdirs, n_days)
-    rv = []
+    # Support there is a file named ".#foo" and an undeleted file named "foo",
+    # and you type "lsdel foo". The code below will end up globbing both "foo"
+    # and ".#foo", then turning "foo" into ".#foo" and adding it twice. Ditto
+    # if there are both deleted and undeleted directories with the same name.
+    # The cleanest way to work around this is to uniquify deleted items as we
+    # add them to our return list.
+    rv = UniqueList()
     # In AFS, without tokens, this is very slow.  "Don't do that."
     # The old code called readdir() and lstat'd everything before following.
     # The old code also re-implemented glob() with BREs, and we're not doing
