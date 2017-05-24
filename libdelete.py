@@ -15,13 +15,7 @@ WILDCARDS_RE = re.compile('([*?[])')
 KILO = 1024
 
 logger = logging.getLogger('libdelete')
-have_AFS = True
-
-try:
-    import afs.fs
-except ImportError:
-    logger.warn("AFS support unavailable")
-    have_AFS = False
+_have_AFS = None
 
 class DeleteError(Exception):
     pass
@@ -52,10 +46,22 @@ def format_columns(items, singlecol=False, width=80):
         rv.append("".join(item.ljust(col_width + padding) for item in c))
     return "\n".join(rv)
 
+def have_AFS():
+    global _have_AFS, afs
+
+    if _have_AFS is None:
+        try:
+            import afs.fs
+            _have_AFS = True
+        except ImportError:
+            logger.warn("AFS support unavailable")
+            _have_AFS = False
+    return _have_AFS
+
 def is_mountpoint(path):
     if os.path.ismount(path):
         return True
-    if have_AFS and afs.fs.inafs(os.path.abspath(path)):
+    if have_AFS() and afs.fs.inafs(os.path.abspath(path)):
         afs.fs.whichcell(path)
         try:
             return afs.fs.lsmount(path) is not None
