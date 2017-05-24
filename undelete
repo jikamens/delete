@@ -55,7 +55,7 @@ def actually_undelete(filename, options):
         if os.path.isdir(undeleted_name) and \
                 not os.path.islink(undeleted_name) and \
                 not libdelete.is_mountpoint(undeleted_name):
-            shutil.rmtree(undleted_name)
+            shutil.rmtree(undeleted_name)
         else:
             os.unlink(undeleted_name)
     if options.noop:
