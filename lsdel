@@ -71,10 +71,12 @@ def main():
             perror(e.message)
             rv = 1
 
-    print libdelete.format_columns(sorted(
+    sys.stdout.write(libdelete.format_columns(
+        sorted(
             [libdelete.relpath(
-                    libdelete.undeleted_name(x)) for x in deleted_files]),
-                                   options.singlecolumn)
+                libdelete.undeleted_name(x)) for x in deleted_files]),
+        options.singlecolumn))
+
     if options.yieldsize:
         total = None
         try:

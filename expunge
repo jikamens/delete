@@ -43,9 +43,10 @@ def expunge(deleted_files, options):
     errors = 0
     if options.listfiles:
         print header
-        print libdelete.format_columns(sorted(
+        sys.stdout.write(libdelete.format_columns(
+            sorted(
                 [libdelete.relpath(
-                        libdelete.undeleted_name(x)) for x in deleted_files]))
+                    libdelete.undeleted_name(x)) for x in deleted_files])))
         print footer
         if not options.force and \
                 not ask(confirmation, nowhoami=True):

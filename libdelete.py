@@ -79,7 +79,7 @@ def format_columns(items, singlecol=False, width=80):
     rv = []
     for c in chunks(items, n_cols):
         rv.append("".join(item.ljust(col_width + padding) for item in c))
-    return "\n".join(rv)
+    return "\n".join(rv) + "\n" if rv else ""
 
 
 def have_AFS():
