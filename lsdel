@@ -11,6 +11,7 @@ from libdelete import perror
 logger = logging.getLogger('lsdel')
 whoami = os.path.basename(sys.argv[0])
 
+
 def debug_callback(option, opt_str, value, parser):
     """
     An OptionParser callback that enables debugging.
@@ -25,6 +26,7 @@ def debug_callback(option, opt_str, value, parser):
                     ", ".join(all_loggers)))
     for l in loggers:
         logging.getLogger(l).setLevel(logging.DEBUG)
+
 
 def parse_options():
     parser = optparse.OptionParser(usage="%prog [options] filename ...")
@@ -53,7 +55,8 @@ def parse_options():
         "-m", dest="f_mounts", action="store_true", default=False,
         help="Follow mount points")
     parser.add_option(
-        "--debug", action="callback", type='string', help="Enable debugging (logger target or 'all')",
+        "--debug", action="callback", type='string',
+        help="Enable debugging (logger target or 'all')",
         callback=debug_callback, metavar='target')
     (options, args) = parser.parse_args()
     if options.singlecolumn and options.multicolumn:
@@ -63,6 +66,7 @@ def parse_options():
     # We really only need to this for mutual exclusivity
     delattr(options, 'multicolumn')
     return (options, args)
+
 
 def main():
     rv = 0
@@ -77,7 +81,7 @@ def main():
                 follow_links=options.f_links,
                 follow_mounts=options.f_mounts,
                 recurse_undeleted_subdirs=options.recursive or None,
-                recurse_deleted_subdirs= not options.dirsonly,
+                recurse_deleted_subdirs=not options.dirsonly,
                 n_days=options.timev)
         except libdelete.DeleteError as e:
             perror(e.message)
@@ -97,10 +101,13 @@ def main():
             rv = 1
 
         if total is None:
-            perror('Unable to display total size: errors occurred during calculation.')
+            perror('Unable to display total size: errors occurred during '
+                   'calculation.')
         else:
-            print "\nTotal space taken up by files: %dKB" % round((float(total) / 1024))
+            print("\nTotal space taken up by files: %dKB" %
+                  round((float(total) / 1024)))
     return rv
+
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.WARNING)

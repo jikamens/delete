@@ -10,7 +10,6 @@ import os
 import re
 import time
 import sys
-import stat
 
 WILDCARDS_RE = re.compile('([*?[])')
 KILO = 1024
@@ -19,8 +18,10 @@ logger = logging.getLogger('libdelete')
 _have_AFS = None
 whoami = os.path.basename(sys.argv[0])
 
+
 class DeleteError(Exception):
     pass
+
 
 def perror(message, **kwargs):
     """
@@ -33,11 +34,13 @@ def perror(message, **kwargs):
     if should_print:
         print >>sys.stderr, msg
 
+
 def chunks(seq, size):
     """
     Break a sequence up into size chunks
     """
     return (seq[pos:pos + size] for pos in xrange(0, len(seq), size))
+
 
 def format_columns(items, singlecol=False, width=80):
     """
@@ -59,6 +62,7 @@ def format_columns(items, singlecol=False, width=80):
         rv.append("".join(item.ljust(col_width + padding) for item in c))
     return "\n".join(rv)
 
+
 def have_AFS():
     global _have_AFS, afs
 
@@ -71,6 +75,7 @@ def have_AFS():
             _have_AFS = False
     return _have_AFS
 
+
 def is_mountpoint(path):
     if os.path.ismount(path):
         return True
@@ -82,8 +87,10 @@ def is_mountpoint(path):
             logger.debug("Got exception while checking mount point: %s", e)
     return False
 
+
 def has_wildcards(string):
     return WILDCARDS_RE.search(string) is not None
+
 
 def is_deleted(path):
     """
@@ -91,11 +98,13 @@ def is_deleted(path):
     """
     return os.path.basename(path).startswith('.#')
 
+
 def dir_listing(path):
     """
     A directory listing with the full path.
     """
     return [os.path.join(path, x) for x in os.listdir(path)]
+
 
 def empty_directory(path):
     """
@@ -104,12 +113,14 @@ def empty_directory(path):
     """
     return all(is_deleted(x) for x in dir_listing(path))
 
+
 def relpath(path):
     """
     For relative paths that begin with '.', strip off the leading
     stuff.
     """
     return path[2:] if path.startswith('./') else path
+
 
 def undeleted_name(path):
     """
@@ -124,6 +135,7 @@ def undeleted_name(path):
     else:
         return path
 
+
 def n_days_old(path, n):
     if n < 0:
         raise ValueError("n must not be negative")
@@ -134,27 +146,34 @@ def n_days_old(path, n):
     logger.debug("%s modified %d sec ago", path, mtime)
     return ((time.time() - mtime) >= (86400 * n))
 
+
 def escape_meta(path):
     return WILDCARDS_RE.sub(r'[\1]', path)
 
+
 def to_kb(size):
     return int(round(float(size) / KILO))
+
 
 def find_deleted_files(file_or_pattern, follow_links=False,
                        follow_mounts=False, recurse_undeleted_subdirs=None,
                        recurse_deleted_subdirs=None, n_days=0):
 
-    logger.debug("find_deleted_files(%s, links=%s, mounts=%s, recurse_un=%s, recurse_del=%s, ndays=%s)",
-                 file_or_pattern, follow_links, follow_mounts, recurse_undeleted_subdirs,
-                 recurse_deleted_subdirs, n_days)
+    logger.debug("find_deleted_files(%s, links=%s, mounts=%s, recurse_un=%s, "
+                 "recurse_del=%s, ndays=%s)",
+                 file_or_pattern, follow_links, follow_mounts,
+                 recurse_undeleted_subdirs, recurse_deleted_subdirs, n_days)
     rv = []
     # In AFS, without tokens, this is very slow.  "Don't do that."
     # The old code called readdir() and lstat'd everything before following.
-    # The old code also re-implemented glob() with BREs, and we're not doing that.
+    # The old code also re-implemented glob() with BREs, and we're not doing
+    # that.
     file_list = glob.glob(file_or_pattern) + glob.glob('.#' + file_or_pattern)
     if len(file_list) == 0:
-        raise DeleteError("{0}: {1}".format(file_or_pattern,
-                                            "No match" if has_wildcards(file_or_pattern) else os.strerror(errno.ENOENT)))
+        raise DeleteError("{0}: {1}".format(
+            file_or_pattern,
+            "No match" if has_wildcards(file_or_pattern)
+            else os.strerror(errno.ENOENT)))
 
     for filename in file_list:
         logger.debug("Examining %s", filename)
@@ -166,10 +185,12 @@ def find_deleted_files(file_or_pattern, follow_links=False,
             if is_mountpoint(filename) and not follow_mounts:
                 logger.debug("Skipping mountpoint: %s", filename)
                 continue
-            if ((is_deleted(filename) and (recurse_deleted_subdirs != False)) or \
-                    (not is_deleted(filename) and (recurse_undeleted_subdirs != False))):
-                # NOTE: recurse_undeleted_subdirs is being abused as a tristate with 'None'
-                #       meaning "do it on the first time only.
+            if ((is_deleted(filename) and
+                 (recurse_deleted_subdirs is not False)) or
+                (not is_deleted(filename) and
+                 (recurse_undeleted_subdirs is not False))):
+                # NOTE: recurse_undeleted_subdirs is being abused as a tristate
+                #       with 'None' meaning "do it on the first time only.
                 logger.debug("Recursing into %sdeleted directory: %s",
                              "un" if not is_deleted(filename) else "",
                              filename)
@@ -177,10 +198,13 @@ def find_deleted_files(file_or_pattern, follow_links=False,
                     for item in dir_listing(filename):
                         # Escape metachars before recursing because filenames
                         # can in fact contain metacharacters.
-                        rv += find_deleted_files(escape_meta(item), follow_links, follow_mounts,
-                                                 False if recurse_undeleted_subdirs is None else recurse_undeleted_subdirs,
-                                                 False if recurse_deleted_subdirs is None else recurse_deleted_subdirs,
-                                                 n_days)
+                        rv += find_deleted_files(
+                            escape_meta(item), follow_links, follow_mounts,
+                            False if recurse_undeleted_subdirs is None
+                            else recurse_undeleted_subdirs,
+                            False if recurse_deleted_subdirs is None
+                            else recurse_deleted_subdirs,
+                            n_days)
                 except OSError as e:
                     perror('{filename}: {error}', filename=e.filename,
                            error=e.strerror)

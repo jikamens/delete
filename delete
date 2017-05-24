@@ -4,14 +4,14 @@ import logging
 import optparse
 import os
 import shutil
-import stat
 import sys
+
+import libdelete
+from libdelete import perror
 
 logger = logging.getLogger('delete')
 whoami = os.path.basename(sys.argv[0])
 
-import libdelete
-from libdelete import perror
 
 def debug_callback(option, opt_str, value, parser):
     """
@@ -28,6 +28,7 @@ def debug_callback(option, opt_str, value, parser):
     for l in loggers:
         logging.getLogger(l).setLevel(logging.DEBUG)
 
+
 def ask(question, *args, **kwargs):
     """
     Ask a question, possibly prepended with the name of the program
@@ -40,6 +41,7 @@ def ask(question, *args, **kwargs):
                                     question % args)).strip().lower() in yes
     except KeyboardInterrupt:
         sys.exit(0)
+
 
 def actually_delete(filename, options):
     """
@@ -55,7 +57,8 @@ def actually_delete(filename, options):
                    filename):
             return False
     if options.noop:
-        print >>sys.stderr, "{0}: {1} would be removed".format(whoami, filename)
+        print >>sys.stderr, "{0}: {1} would be removed".format(
+            whoami, filename)
         return True
     (dirname, basename) = os.path.split(filename)
     newname = os.path.join(dirname, '.#' + basename)
@@ -72,6 +75,7 @@ def actually_delete(filename, options):
     # None means use the current time
     os.utime(newname, None)
     return True
+
 
 def delete(filename, options):
     logger.debug("delete(%s)", filename)
@@ -123,6 +127,7 @@ def delete(filename, options):
         else:
             return actually_delete(filename, options)
 
+
 def main():
     parser = optparse.OptionParser(usage="%prog [options] filename ...")
     # This is probably a terrible idea, but the old code did it
@@ -155,7 +160,8 @@ def main():
         default=linked_to_rmdir,
         help="Only remove empty directories (refuse to remove files)")
     parser.add_option(
-        "--debug", action="callback", type='string', help="Enable debugging (logger target or 'all')",
+        "--debug", action="callback", type='string',
+        help="Enable debugging (logger target or 'all')",
         callback=debug_callback, metavar='target')
     (options, args) = parser.parse_args()
     if options.filesonly and options.directoriesonly:
@@ -175,6 +181,7 @@ def main():
         if not delete(filename.rstrip('/'), options):
             errors = 1
     return errors
+
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.WARNING)

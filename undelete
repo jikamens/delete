@@ -4,7 +4,6 @@ import logging
 import optparse
 import os
 import shutil
-import stat
 import sys
 
 import libdelete
@@ -12,6 +11,7 @@ from libdelete import perror
 
 logger = logging.getLogger('undelete')
 whoami = os.path.basename(sys.argv[0])
+
 
 def debug_callback(option, opt_str, value, parser):
     """
@@ -28,6 +28,7 @@ def debug_callback(option, opt_str, value, parser):
     for l in loggers:
         logging.getLogger(l).setLevel(logging.DEBUG)
 
+
 def ask(question, *args, **kwargs):
     """
     Ask a question, possibly prepended with the name of the program
@@ -41,12 +42,15 @@ def ask(question, *args, **kwargs):
     except KeyboardInterrupt:
         sys.exit(0)
 
+
 def actually_undelete(filename, options):
     undeleted_name = libdelete.undeleted_name(filename)
     logger.debug("actually_undelete(%s)", filename)
     logger.debug("undeleted name: %s", undeleted_name)
 
-    if options.interactive and not ask('Undelete %s%s?', 'directory' if os.path.isdir(filename) else '', filename):
+    if options.interactive and not ask(
+            'Undelete %s%s?', 'directory' if os.path.isdir(filename) else '',
+            filename):
         return False
     if os.path.exists(undeleted_name):
         if not options.force:
@@ -59,11 +63,13 @@ def actually_undelete(filename, options):
         else:
             os.unlink(undeleted_name)
     if options.noop:
-        print >>sys.stderr, "{0}: {1} would be undeleted".format(whoami, filename)
+        print >>sys.stderr, "{0}: {1} would be undeleted".format(
+            whoami, filename)
         return True
     os.rename(filename, undeleted_name)
     print >>sys.stderr, "{0}: {1} undeleted".format(whoami, filename)
     return True
+
 
 def undelete(filename, options):
     r_undel = None
@@ -80,7 +86,8 @@ def undelete(filename, options):
         recurse_deleted_subdirs=r_del,
         follow_links=True, follow_mounts=True)
     if len(deleted_files) == 0:
-        perror("{0}: No such file or directory".format(filename), _maybe=options.report_errors)
+        perror("{0}: No such file or directory".format(filename),
+               _maybe=options.report_errors)
         return False
     deleted_files.sort(reverse=True, key=lambda x: x.count(os.path.sep))
     for f in deleted_files:
@@ -108,6 +115,7 @@ def get_filenames_from_stdin(options):
     # Control should never get here, but just for good measure
     sys.exit(errors)
 
+
 def main():
     rv = 0
     parser = optparse.OptionParser(usage="%prog [options] filename ...")
@@ -130,7 +138,8 @@ def main():
         "-R", dest="dirsonly", action="store_true", default=False,
         help="directories only (no recursion)")
     parser.add_option(
-        "--debug", action="callback", type='string', help="Enable debugging (logger target or 'all')",
+        "--debug", action="callback", type='string',
+        help="Enable debugging (logger target or 'all')",
         callback=debug_callback, metavar='target')
     (options, args) = parser.parse_args()
     if options.recursive and options.dirsonly:
@@ -145,6 +154,7 @@ def main():
             perror(e.message, _maybe=options.report_errors)
             rv = 1
     return rv
+
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.WARNING)

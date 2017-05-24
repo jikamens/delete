@@ -18,6 +18,7 @@ confirmation = "Do you wish to continue [return = no]? "
 logger = logging.getLogger('expunge')
 whoami = os.path.basename(sys.argv[0])
 
+
 def debug_callback(option, opt_str, value, parser):
     """
     An OptionParser callback that enables debugging.
@@ -33,6 +34,7 @@ def debug_callback(option, opt_str, value, parser):
     for l in loggers:
         logging.getLogger(l).setLevel(logging.DEBUG)
 
+
 def ask(question, *args, **kwargs):
     """
     Ask a question, possibly prepended with the name of the program
@@ -46,9 +48,11 @@ def ask(question, *args, **kwargs):
     except KeyboardInterrupt:
         sys.exit(0)
 
+
 def getsize(path):
     size = os.path.getsize(path)
     return (size, "(%dKB)" % (libdelete.to_kb(size),))
+
 
 def expunge(deleted_files, options):
     expunged_size = 0
@@ -87,7 +91,11 @@ def expunge(deleted_files, options):
                     # We exit here, not keep going, as the original code did
                     sys.exit(errors)
             if options.verbose:
-                print "{whoami}: {path} {size} {maybe}expunged ({total}KB total)".format(whoami=whoami, path=f, size=size_str, maybe='would be ' if options.noop else '', total=libdelete.to_kb(expunged_size))
+                print("{whoami}: {path} {size} {maybe}expunged "
+                      "({total}KB total)".format(
+                          whoami=whoami, path=f, size=size_str,
+                          maybe='would be ' if options.noop else '',
+                          total=libdelete.to_kb(expunged_size)))
         if not options.noop:
             if os.path.isdir(f) and not os.path.islink(f):
                 logger.debug("rmdir: %s", f)
@@ -99,6 +107,7 @@ def expunge(deleted_files, options):
     if options.yieldsize:
         print "Total expunged: {0}KB".format(libdelete.to_kb(expunged_size))
     return errors
+
 
 def parse_options():
     parser = optparse.OptionParser(usage="%prog [options] filename ...")
@@ -133,13 +142,15 @@ def parse_options():
         "-m", dest="f_mounts", action="store_true", default=False,
         help="Follow mount points")
     parser.add_option(
-        "--debug", action="callback", type='string', help="Enable debugging (logger target or 'all')",
+        "--debug", action="callback", type='string',
+        help="Enable debugging (logger target or 'all')",
         callback=debug_callback, metavar='target')
     (options, args) = parser.parse_args()
     if options.noop:
         # -n implies -v
         options.verbose = True
     return (options, args)
+
 
 def main():
     rv = 0
@@ -175,10 +186,12 @@ def main():
             # Doesn't cover all corner cases, but covers everything the old
             # code supported.  In particular, weird symlinks will make this
             # sad
-            deleted_files.sort(reverse=True, key=lambda x: x.count(os.path.sep))
+            deleted_files.sort(reverse=True,
+                               key=lambda x: x.count(os.path.sep))
             rv += expunge(deleted_files, options)
 
     return rv
+
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.WARNING)
