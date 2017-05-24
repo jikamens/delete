@@ -7,8 +7,6 @@ import shutil
 import stat
 import sys
 
-import afs.fs
-
 logger = logging.getLogger('delete')
 whoami = os.path.basename(sys.argv[0])
 
