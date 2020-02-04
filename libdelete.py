@@ -51,14 +51,14 @@ def perror(message, **kwargs):
     msg = "{0}: {1}".format(whoami, message.format(**kwargs))
     logger.debug("Error: %s", msg)
     if should_print:
-        print >>sys.stderr, msg
+        sys.stderr.write("{}\n".format(msg))
 
 
 def chunks(seq, size):
     """
     Break a sequence up into size chunks
     """
-    return (seq[pos:pos + size] for pos in xrange(0, len(seq), size))
+    return (seq[pos:pos + size] for pos in range(0, len(seq), size))
 
 
 def format_columns(items, singlecol=False, width=80):

@@ -27,8 +27,8 @@ def ask(question, *args, **kwargs):
     yes = ('y', 'yes')
     prepend = '' if kwargs.get('nowhoami', False) else "{0}: ".format(whoami)
     try:
-        return raw_input("%s%s " % (prepend,
-                                    question % args)).strip().lower() in yes
+        return input("%s%s " % (prepend,
+                                question % args)).strip().lower() in yes
     except KeyboardInterrupt:
         sys.exit(0)
 
@@ -42,12 +42,12 @@ def expunge(deleted_files, options):
     expunged_size = 0
     errors = 0
     if options.listfiles:
-        print header
+        print(header)
         sys.stdout.write(libdelete.format_columns(
             sorted(
                 [libdelete.relpath(
                     libdelete.undeleted_name(x)) for x in deleted_files])))
-        print footer
+        print(footer)
         if not options.force and \
                 not ask(confirmation, nowhoami=True):
             logger.debug("User failed to confirm; exiting")
@@ -90,7 +90,7 @@ def expunge(deleted_files, options):
                 os.unlink(f)
 
     if options.yieldsize:
-        print "Total expunged: {0}KB".format(libdelete.to_kb(expunged_size))
+        print("Total expunged: {0}KB".format(libdelete.to_kb(expunged_size)))
     return errors
 
 
@@ -143,8 +143,7 @@ def main():
         if (len(sys.argv) == 2) and (sys.argv[1] == '--debug'):
             sys.argv.append('all')
         else:
-            print >>sys.stderr, "purge does not take any arguments or options."
-            sys.exit(1)
+            sys.exit("purge does not take any arguments or options.")
     (options, args) = parse_options()
     if (whoami == "purge"):
         args = [os.path.expanduser('~')]

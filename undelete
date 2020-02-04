@@ -21,8 +21,8 @@ def ask(question, *args, **kwargs):
     yes = ('y', 'yes')
     prepend = '' if kwargs.get('nowhoami', False) else "{0}: ".format(whoami)
     try:
-        return raw_input("%s%s " % (prepend,
-                                    question % args)).strip().lower() in yes
+        return input("%s%s " % (prepend,
+                                question % args)).strip().lower() in yes
     except KeyboardInterrupt:
         sys.exit(0)
 
@@ -47,11 +47,11 @@ def actually_undelete(filename, options):
         else:
             os.unlink(undeleted_name)
     if options.noop:
-        print >>sys.stderr, "{0}: {1} would be undeleted".format(
-            whoami, filename)
+        sys.stderr.write("{0}: {1} would be undeleted\n".format(
+            whoami, filename))
         return True
     os.rename(filename, undeleted_name)
-    print >>sys.stderr, "{0}: {1} undeleted".format(whoami, filename)
+    sys.stderr.write("{0}: {1} undeleted\n".format(whoami, filename))
     return True
 
 
@@ -82,11 +82,11 @@ def undelete(filename, options):
 def get_filenames_from_stdin(options):
     errors = 0
     if options.verbose:
-        print "Enter the files to be undeleted, one file per line."
-        print "Hit <RETURN> on a line by itself to exit.\n"
+        print("Enter the files to be undeleted, one file per line.")
+        print("Hit <RETURN> on a line by itself to exit.\n")
     while True:
         try:
-            filename = raw_input("{0}: ".format(whoami))
+            filename = input("{0}: ".format(whoami))
         except (EOFError, KeyboardInterrupt):
             sys.exit(errors)
         if len(filename) == 0:
